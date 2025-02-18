@@ -1,0 +1,93 @@
+specification {
+    element person {
+        style {
+            shape person
+            color green
+        }
+    }
+    element softwareSystem
+    element container
+    element component
+}
+
+model {
+  user = person "Пользователь"
+
+  socialNetwork = softwareSystem "Social Network" {
+
+    apiGateway = container "API Gateway" {
+      description "Маршрутизация запросов и управление доступом"
+      technology "Node.js, Docker"
+    }
+
+    userService = container "User Service" {
+      description "Регистрация, аутентификация и управление пользователями"
+      technology "Go, Docker"
+      
+      component authController "Auth Controller" {
+        description "Обрабатывает аутентификацию пользователей"
+        technology "REST API"
+      }
+      component registrationController "Registration Controller" {
+        description "Обрабатывает регистрацию новых пользователей"
+        technology "REST API"
+      }
+      component profileController "Profile Controller" {
+        description "Управляет профилями пользователей и их ролями"
+        technology "REST API"
+      }
+      component usersDb "PostgreSQL" {
+        description "Хранение информации о пользователях и их ролях"
+        technology "SQL Database"
+      }
+    }
+
+    statsService = container "Statistics Service" {
+      description "Подсчет лайков, просмотров и комментариев"
+      technology "Go, Docker"
+      
+      component statsController "Stats Controller" "Обрабатывает статистические данные"
+      component statsDb "ClickHouse" "База данных для хранения статистики"
+    }
+
+    postAndCommentService = container "Post and Comment Service" {
+      description "Управление постами и комментариями"
+      technology "Go, Docker"
+      
+      component postController "Post Controller" "Обрабатывает публикации и комментарии"
+      component postsDb "PostgreSQL" "База данных для хранения постов и комментариев"
+    }
+
+    kafka = container "Kafka" {
+      description "Обмен сообщениями между сервисами"
+      technology "Message Broker"
+      style {
+        shape queue
+      }
+    }
+  }
+
+  user -> socialNetwork.apiGateway "Использует" "HTTPS"
+
+  socialNetwork.apiGateway -> socialNetwork.userService "Взаимодействует" "HTTP"
+  socialNetwork.apiGateway -> socialNetwork.statsService "Взаимодействует" "HTTP"
+  socialNetwork.apiGateway -> socialNetwork.postAndCommentService "Взаимодействует" "HTTP"
+
+  socialNetwork.postAndCommentService -> socialNetwork.kafka "Отправляет события" "Просмотры, лайки, комментарии"
+  socialNetwork.kafka -> socialNetwork.statsService "Публикует события" "Просмотры, лайки, комментарии"
+
+  socialNetwork.userService.authController -> socialNetwork.userService.usersDb "Читает/Пишет" "SQL"
+  socialNetwork.userService.registrationController -> socialNetwork.userService.usersDb "Читает/Пишет" "SQL"
+  socialNetwork.userService.profileController -> socialNetwork.userService.usersDb "Читает/Пишет" "SQL"
+
+  socialNetwork.statsService.statsController -> socialNetwork.statsService.statsDb "Читает/Пишет" "SQL"
+
+  socialNetwork.postAndCommentService.postController -> socialNetwork.postAndCommentService.postsDb "Читает/Пишет" "SQL"
+}
+
+views {
+   view index {
+        title "Архитектура Social Network"
+        include *
+   }
+}
