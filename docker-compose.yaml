@@ -1,0 +1,46 @@
+services:
+  api-service:
+    build:
+      context: .
+      dockerfile: ./api-service/DockerFile
+    ports:
+      - "8080:8080"
+    networks:
+      - app-network
+
+  user-service:
+    build:
+      context: .
+      dockerfile: ./user-service/DockerFile
+    ports:
+      - "8081:8081"
+    environment:
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_USER=mydbuser
+      - DB_PASSWORD=password
+      - DB_NAME=mydb
+      - COOKIE_SECRET=my_secret_string
+    networks:
+      - app-network
+    depends_on:
+      - db
+
+  db:
+    image: postgres:14
+    environment:
+      - POSTGRES_USER=mydbuser
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=mydb
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - app-network
+
+networks:
+  app-network:
+
+volumes:
+  postgres_data:
