@@ -1,0 +1,11 @@
+{
+    "apiService": {
+        "port": 8080
+    },
+    "userService": {
+        "port": 8081,
+        "dbConfig": {
+            "port": 5432
+        }
+    }
+}
