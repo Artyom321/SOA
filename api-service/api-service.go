@@ -25,7 +25,7 @@ import (
 func main() {
 	cfg := config.LoadConfig("common/config/config.json")
 
-	handler := handlers.NewHandler("user-service", cfg.UserService.Port)
+	handler := handlers.NewHandler("user-service", cfg.UserService.Port, "post-service", cfg.PostService.Port)
 
 	r := gin.Default()
 
@@ -41,6 +41,16 @@ func main() {
 		{
 			authenticated.GET("/profile", handler.ProfileGetHandler)
 			authenticated.PUT("/profile", handler.ProfileUpdateHandler)
+
+			// Post routes
+			posts := authenticated.Group("/posts")
+			{
+				posts.POST("", handler.CreatePostHandler)
+				posts.GET("", handler.ListPostsHandler)
+				posts.GET("/:id", handler.GetPostHandler)
+				posts.PUT("/:id", handler.UpdatePostHandler)
+				posts.DELETE("/:id", handler.DeletePostHandler)
+			}
 		}
 	}
 
