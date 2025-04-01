@@ -1,5 +1,41 @@
 basePath: /api
 definitions:
+  models.CreatePostRequest:
+    properties:
+      description:
+        description: |-
+          Описание поста
+          example: Это описание моего первого поста
+        type: string
+      is_private:
+        description: |-
+          Флаг приватности
+          example: false
+        type: boolean
+      tags:
+        description: |-
+          Список тегов
+          example: ["тег1", "тег2"]
+        items:
+          type: string
+        type: array
+      title:
+        description: |-
+          Название поста
+          example: Мой первый пост
+          required: true
+        type: string
+    required:
+    - title
+    type: object
+  models.DeletePostResponse:
+    properties:
+      success:
+        description: |-
+          Результат удаления
+          example: true
+        type: boolean
+    type: object
   models.ErrorResponse:
     properties:
       error:
@@ -32,6 +68,64 @@ definitions:
         description: |-
           Сообщение о результате
           example: Logged in successfully
+        type: string
+    type: object
+  models.PostListResponse:
+    properties:
+      posts:
+        description: Список постов
+        items:
+          $ref: '#/definitions/models.PostResponse'
+        type: array
+      total_count:
+        description: |-
+          Общее количество постов
+          example: 42
+        type: integer
+    type: object
+  models.PostResponse:
+    properties:
+      created_at:
+        description: |-
+          Дата создания поста
+          example: 2023-01-01T12:00:00Z
+        type: string
+      creator_id:
+        description: |-
+          ID создателя поста
+          example: 123e4567-e89b-12d3-a456-426614174000
+        type: string
+      description:
+        description: |-
+          Описание поста
+          example: Это описание моего первого поста
+        type: string
+      id:
+        description: |-
+          ID поста
+          example: 123e4567-e89b-12d3-a456-426614174000
+        type: string
+      is_private:
+        description: |-
+          Флаг приватности
+          example: false
+        type: boolean
+      tags:
+        description: |-
+          Список тегов
+          example: ["тег1", "тег2"]
+        items:
+          type: string
+        type: array
+      title:
+        description: |-
+          Название поста
+          example: Мой первый пост
+        type: string
+      updated_at:
+        description: |-
+          Дата обновления поста
+          example: 2023-01-02T12:00:00Z
         type: string
     type: object
   models.ProfileResponse:
@@ -125,6 +219,31 @@ definitions:
           example: user created
         type: string
     type: object
+  models.UpdatePostRequest:
+    properties:
+      description:
+        description: |-
+          Описание поста
+          example: Обновленное описание поста
+        type: string
+      is_private:
+        description: |-
+          Флаг приватности
+          example: true
+        type: boolean
+      tags:
+        description: |-
+          Список тегов
+          example: ["тег1", "тег2", "новыйТег"]
+        items:
+          type: string
+        type: array
+      title:
+        description: |-
+          Название поста
+          example: Обновленное название поста
+        type: string
+    type: object
   models.User:
     properties:
       birthDate:
@@ -205,6 +324,196 @@ paths:
       summary: Аутентификация пользователя
       tags:
       - Authentication
+  /posts:
+    get:
+      description: Возвращает пагинированный список постов
+      parameters:
+      - description: Номер страницы (по умолчанию 1)
+        in: query
+        name: page
+        type: integer
+      - description: Размер страницы (по умолчанию 20)
+        in: query
+        name: page_size
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.PostListResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - sessionAuth: []
+      summary: Получение списка постов
+      tags:
+      - Posts
+    post:
+      consumes:
+      - application/json
+      description: Создает новый пост от имени текущего пользователя
+      parameters:
+      - description: Данные для создания поста
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/models.CreatePostRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.PostResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - sessionAuth: []
+      summary: Создание нового поста
+      tags:
+      - Posts
+  /posts/{id}:
+    delete:
+      description: Удаляет пост по его ID
+      parameters:
+      - description: ID поста
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.DeletePostResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - sessionAuth: []
+      summary: Удаление поста
+      tags:
+      - Posts
+    get:
+      description: Возвращает пост по его ID
+      parameters:
+      - description: ID поста
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.PostResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - sessionAuth: []
+      summary: Получение поста по ID
+      tags:
+      - Posts
+    put:
+      consumes:
+      - application/json
+      description: Обновляет данные поста
+      parameters:
+      - description: ID поста
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Новые данные для поста
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/models.UpdatePostRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.PostResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - sessionAuth: []
+      summary: Обновление поста
+      tags:
+      - Posts
   /profile:
     get:
       description: Возвращает профиль текущего авторизованного пользователя

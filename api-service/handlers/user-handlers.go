@@ -1,32 +1,13 @@
 package handlers
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 	"net/http/httputil"
-	"net/url"
 	"strings"
 
 	"github.com/gin-gonic/gin"
 )
-
-type Handler struct {
-	UserServiceURL   *url.URL
-	UserServiceProxy *httputil.ReverseProxy
-}
-
-func NewHandler(userServiceHost string, userServicePort int) *Handler {
-	userServiceURL, _ := url.Parse(fmt.Sprintf("http://%s:%d", userServiceHost, userServicePort))
-
-	h := &Handler{
-		UserServiceURL: userServiceURL,
-	}
-
-	h.UserServiceProxy = h.createUserServiceProxy()
-
-	return h
-}
 
 func (h *Handler) createUserServiceProxy() *httputil.ReverseProxy {
 	director := func(req *http.Request) {
@@ -35,7 +16,7 @@ func (h *Handler) createUserServiceProxy() *httputil.ReverseProxy {
 
 		req.URL.Path = strings.Replace(req.URL.Path, "/api/", "/users/", 1)
 
-		log.Printf("Proxying request to: %s", req.URL.String())
+		log.Printf("Proxying request to user service: %s", req.URL.String())
 
 		if _, ok := req.Header["User-Agent"]; !ok {
 			req.Header.Set("User-Agent", "API-Gateway")
@@ -57,7 +38,7 @@ func (h *Handler) createUserServiceProxy() *httputil.ReverseProxy {
 // @Failure 500 {object} models.ErrorResponse
 // @Router /register [post]
 func (h *Handler) RegisterHandler(c *gin.Context) {
-	h.ProxyRequest(c)
+	h.ProxyUserRequest(c)
 }
 
 // LoginHandler обрабатывает запросы на вход в систему
@@ -72,7 +53,7 @@ func (h *Handler) RegisterHandler(c *gin.Context) {
 // @Failure 401 {object} models.ErrorResponse
 // @Router /login [post]
 func (h *Handler) LoginHandler(c *gin.Context) {
-	h.ProxyRequest(c)
+	h.ProxyUserRequest(c)
 }
 
 // ProfileGetHandler обрабатывает запросы на получение профиля
@@ -85,7 +66,7 @@ func (h *Handler) LoginHandler(c *gin.Context) {
 // @Failure 401 {object} models.ErrorResponse
 // @Router /profile [get]
 func (h *Handler) ProfileGetHandler(c *gin.Context) {
-	h.ProxyRequest(c)
+	h.ProxyUserRequest(c)
 }
 
 // ProfileUpdateHandler обрабатывает запросы на обновление профиля
@@ -102,9 +83,9 @@ func (h *Handler) ProfileGetHandler(c *gin.Context) {
 // @Failure 500 {object} models.ErrorResponse
 // @Router /profile [put]
 func (h *Handler) ProfileUpdateHandler(c *gin.Context) {
-	h.ProxyRequest(c)
+	h.ProxyUserRequest(c)
 }
 
-func (h *Handler) ProxyRequest(c *gin.Context) {
+func (h *Handler) ProxyUserRequest(c *gin.Context) {
 	h.UserServiceProxy.ServeHTTP(c.Writer, c.Request)
 }

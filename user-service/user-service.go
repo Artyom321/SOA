@@ -1,12 +1,3 @@
-// @title User Service API
-// @version 1.0
-// @description API сервис для управления пользователями
-// @host localhost:8081
-// @BasePath /api
-// @schemes http
-// @securityDefinitions.apikey sessionAuth
-// @in cookie
-// @name user-session
 package main
 
 import (
@@ -16,14 +7,10 @@ import (
 	"social-network/common/config"
 	"social-network/user-service/handlers"
 
-	_ "social-network/docs/user"
-
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-contrib/sessions/cookie"
 	"github.com/gin-gonic/gin"
 	_ "github.com/lib/pq"
-	swaggerFiles "github.com/swaggo/files"
-	ginSwagger "github.com/swaggo/gin-swagger"
 	"gorm.io/gorm"
 )
 
@@ -46,7 +33,6 @@ func main() {
 
 	api := router.Group("/users")
 	{
-		api.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 		api.POST("/register", handler.RegisterHandler)
 		api.POST("/login", handler.LoginHandler)

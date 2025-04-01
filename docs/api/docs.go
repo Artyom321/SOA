@@ -61,6 +61,303 @@ const docTemplate = `{
                 }
             }
         },
+        "/posts": {
+            "get": {
+                "security": [
+                    {
+                        "sessionAuth": []
+                    }
+                ],
+                "description": "Возвращает пагинированный список постов",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Posts"
+                ],
+                "summary": "Получение списка постов",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Номер страницы (по умолчанию 1)",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Размер страницы (по умолчанию 20)",
+                        "name": "page_size",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.PostListResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "sessionAuth": []
+                    }
+                ],
+                "description": "Создает новый пост от имени текущего пользователя",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Posts"
+                ],
+                "summary": "Создание нового поста",
+                "parameters": [
+                    {
+                        "description": "Данные для создания поста",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.CreatePostRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/models.PostResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/posts/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "sessionAuth": []
+                    }
+                ],
+                "description": "Возвращает пост по его ID",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Posts"
+                ],
+                "summary": "Получение поста по ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID поста",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.PostResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "sessionAuth": []
+                    }
+                ],
+                "description": "Обновляет данные поста",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Posts"
+                ],
+                "summary": "Обновление поста",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID поста",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Новые данные для поста",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.UpdatePostRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.PostResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "sessionAuth": []
+                    }
+                ],
+                "description": "Удаляет пост по его ID",
+                "tags": [
+                    "Posts"
+                ],
+                "summary": "Удаление поста",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID поста",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.DeletePostResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/profile": {
             "get": {
                 "security": [
@@ -195,6 +492,42 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "models.CreatePostRequest": {
+            "type": "object",
+            "required": [
+                "title"
+            ],
+            "properties": {
+                "description": {
+                    "description": "Описание поста\nexample: Это описание моего первого поста",
+                    "type": "string"
+                },
+                "is_private": {
+                    "description": "Флаг приватности\nexample: false",
+                    "type": "boolean"
+                },
+                "tags": {
+                    "description": "Список тегов\nexample: [\"тег1\", \"тег2\"]",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "title": {
+                    "description": "Название поста\nexample: Мой первый пост\nrequired: true",
+                    "type": "string"
+                }
+            }
+        },
+        "models.DeletePostResponse": {
+            "type": "object",
+            "properties": {
+                "success": {
+                    "description": "Результат удаления\nexample: true",
+                    "type": "boolean"
+                }
+            }
+        },
         "models.ErrorResponse": {
             "type": "object",
             "properties": {
@@ -226,6 +559,62 @@ const docTemplate = `{
             "properties": {
                 "message": {
                     "description": "Сообщение о результате\nexample: Logged in successfully",
+                    "type": "string"
+                }
+            }
+        },
+        "models.PostListResponse": {
+            "type": "object",
+            "properties": {
+                "posts": {
+                    "description": "Список постов",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.PostResponse"
+                    }
+                },
+                "total_count": {
+                    "description": "Общее количество постов\nexample: 42",
+                    "type": "integer"
+                }
+            }
+        },
+        "models.PostResponse": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "description": "Дата создания поста\nexample: 2023-01-01T12:00:00Z",
+                    "type": "string"
+                },
+                "creator_id": {
+                    "description": "ID создателя поста\nexample: 123e4567-e89b-12d3-a456-426614174000",
+                    "type": "string"
+                },
+                "description": {
+                    "description": "Описание поста\nexample: Это описание моего первого поста",
+                    "type": "string"
+                },
+                "id": {
+                    "description": "ID поста\nexample: 123e4567-e89b-12d3-a456-426614174000",
+                    "type": "string"
+                },
+                "is_private": {
+                    "description": "Флаг приватности\nexample: false",
+                    "type": "boolean"
+                },
+                "tags": {
+                    "description": "Список тегов\nexample: [\"тег1\", \"тег2\"]",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "title": {
+                    "description": "Название поста\nexample: Мой первый пост",
+                    "type": "string"
+                },
+                "updated_at": {
+                    "description": "Дата обновления поста\nexample: 2023-01-02T12:00:00Z",
                     "type": "string"
                 }
             }
@@ -320,6 +709,30 @@ const docTemplate = `{
             "properties": {
                 "status": {
                     "description": "Статус операции\nexample: user created",
+                    "type": "string"
+                }
+            }
+        },
+        "models.UpdatePostRequest": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "description": "Описание поста\nexample: Обновленное описание поста",
+                    "type": "string"
+                },
+                "is_private": {
+                    "description": "Флаг приватности\nexample: true",
+                    "type": "boolean"
+                },
+                "tags": {
+                    "description": "Список тегов\nexample: [\"тег1\", \"тег2\", \"новыйТег\"]",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "title": {
+                    "description": "Название поста\nexample: Обновленное название поста",
                     "type": "string"
                 }
             }

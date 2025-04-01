@@ -8,7 +8,7 @@ import (
 type User struct {
 	// ID пользователя
 	// example: 1
-	ID uint `json:"-" gorm:"primarykey"`
+	ID uint `json:"id" gorm:"primarykey"`
 
 	// Логин пользователя
 	// example: johndoe

@@ -14,6 +14,10 @@ type Config struct {
 		Port     int      `json:"port"`
 		DBConfig DBConfig `json:"dbConfig"`
 	} `json:"userService"`
+	PostService struct {
+		Port     int      `json:"port"`
+		DBConfig DBConfig `json:"dbConfig"`
+	} `json:"postService"`
 }
 
 type DBConfig struct {
