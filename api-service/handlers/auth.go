@@ -1,13 +1,18 @@
 package handlers
 
 import (
+	"encoding/json"
+	"io"
 	"log"
 	"net/http"
 	"net/url"
 	"social-network/common/models"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
+
+const UserID = "user_id"
 
 func (h *Handler) AuthMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -46,6 +51,26 @@ func (h *Handler) AuthMiddleware() gin.HandlerFunc {
 				models.ErrorResponse{Error: "Unauthorized"})
 			return
 		}
+
+		body, err := io.ReadAll(resp.Body)
+		if err != nil {
+			log.Printf("Error reading profile response: %v", err)
+			c.AbortWithStatusJSON(http.StatusInternalServerError,
+				models.ErrorResponse{Error: "Internal server error"})
+			return
+		}
+
+		var profile models.ProfileResponse
+		if err := json.Unmarshal(body, &profile); err != nil {
+			log.Printf("Error parsing profile response: %v", err)
+			c.AbortWithStatusJSON(http.StatusInternalServerError,
+				models.ErrorResponse{Error: "Internal server error"})
+			return
+		}
+
+		userID := strconv.FormatUint(uint64(profile.User.ID), 10)
+		log.Printf("Authenticated user ID: %d", profile.User.ID)
+		c.Set(UserID, userID)
 
 		c.Next()
 	}

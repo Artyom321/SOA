@@ -7,5 +7,11 @@
         "dbConfig": {
             "port": 5432
         }
+    },
+    "postService": {
+        "port": 8082,
+        "dbConfig": {
+            "port": 5432
+        }
     }
 }

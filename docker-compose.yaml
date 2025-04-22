@@ -15,27 +15,57 @@ services:
     ports:
       - "8081:8081"
     environment:
-      - DB_HOST=db
+      - DB_HOST=user-db
       - DB_PORT=5432
       - DB_USER=mydbuser
       - DB_PASSWORD=password
-      - DB_NAME=mydb
+      - DB_NAME=userdb
       - COOKIE_SECRET=my_secret_string
     networks:
       - app-network
     depends_on:
-      - db
+      - user-db
 
-  db:
+  post-service:
+    build:
+      context: .
+      dockerfile: ./post-service/DockerFile
+    ports:
+      - "8082:8082"
+    environment:
+      - DB_HOST=post-db
+      - DB_PORT=5432
+      - DB_USER=mydbuser
+      - DB_PASSWORD=password
+      - DB_NAME=postdb
+    networks:
+      - app-network
+    depends_on:
+      - post-db
+
+  user-db:
     image: postgres:14
     environment:
       - POSTGRES_USER=mydbuser
       - POSTGRES_PASSWORD=password
-      - POSTGRES_DB=mydb
+      - POSTGRES_DB=userdb
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - user_postgres_data:/var/lib/postgresql/data
     ports:
       - "5432:5432"
+    networks:
+      - app-network
+
+  post-db:
+    image: postgres:14
+    environment:
+      - POSTGRES_USER=mydbuser
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=postdb
+    volumes:
+      - post_postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5433:5432"
     networks:
       - app-network
 
@@ -43,4 +73,5 @@ networks:
   app-network:
 
 volumes:
-  postgres_data:
+  user_postgres_data:
+  post_postgres_data:
