@@ -13,5 +13,12 @@
         "dbConfig": {
             "port": 5432
         }
+    },
+    "kafka": {
+        "broker": "kafka:29092",
+        "userTopic": "user_registrations",
+        "viewTopic": "post_views",
+        "likeTopic": "post_likes",
+        "commentTopic": "post_comments"
     }
 }

@@ -50,6 +50,10 @@ func main() {
 				posts.GET("/:id", handler.GetPostHandler)
 				posts.PUT("/:id", handler.UpdatePostHandler)
 				posts.DELETE("/:id", handler.DeletePostHandler)
+				posts.POST("/:id/view", handler.ViewPostHandler)
+				posts.POST("/:id/like", handler.LikePostHandler)
+				posts.POST("/:id/comments", handler.AddCommentHandler)
+				posts.GET("/:id/comments", handler.GetCommentsHandler)
 			}
 		}
 	}

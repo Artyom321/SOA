@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"net/url"
 	"social-network/common/models"
-	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
@@ -68,9 +67,8 @@ func (h *Handler) AuthMiddleware() gin.HandlerFunc {
 			return
 		}
 
-		userID := strconv.FormatUint(uint64(profile.User.ID), 10)
 		log.Printf("Authenticated user ID: %d", profile.User.ID)
-		c.Set(UserID, userID)
+		c.Set(UserID, profile.User.ID)
 
 		c.Next()
 	}

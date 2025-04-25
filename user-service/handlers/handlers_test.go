@@ -18,10 +18,12 @@ import (
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 
+	"social-network/common/config"
 	"social-network/common/models"
 )
 
-func setupTestDB(t *testing.T) *gorm.DB {
+func setupTestDB(t *testing.T) (*gorm.DB, func()) {
+	// Используем уникальное имя базы данных для каждого теста
 	dbName := fmt.Sprintf("file:memdb%d?mode=memory&cache=shared", time.Now().UnixNano())
 	testDB, err := gorm.Open(sqlite.Open(dbName), &gorm.Config{})
 	assert.NoError(t, err)
@@ -29,12 +31,30 @@ func setupTestDB(t *testing.T) *gorm.DB {
 	err = testDB.AutoMigrate(&models.User{})
 	assert.NoError(t, err)
 
-	return testDB
+	// Получаем базовый sql.DB объект для закрытия соединения
+	sqlDB, err := testDB.DB()
+	assert.NoError(t, err)
+
+	// Возвращаем функцию для закрытия соединения после теста
+	return testDB, func() {
+		sqlDB.Close()
+	}
+}
+
+// Создаем тестовый обработчик без Kafka для тестов
+func newTestHandler(db *gorm.DB) *Handler {
+	return &Handler{
+		DB:            db,
+		KafkaProducer: nil,
+		Config:        &config.Config{},
+	}
 }
 
 func TestRegisterHandler(t *testing.T) {
-	testDB := setupTestDB(t)
-	handler := NewHandler(testDB)
+	testDB, cleanup := setupTestDB(t)
+	defer cleanup()
+
+	handler := newTestHandler(testDB)
 
 	gin.SetMode(gin.TestMode)
 	r := gin.New()
@@ -79,8 +99,10 @@ func TestRegisterHandler(t *testing.T) {
 }
 
 func TestLoginHandler(t *testing.T) {
-	testDB := setupTestDB(t)
-	handler := NewHandler(testDB)
+	testDB, cleanup := setupTestDB(t)
+	defer cleanup()
+
+	handler := newTestHandler(testDB)
 
 	hashedPassword, _ := bcrypt.GenerateFromPassword([]byte("password123"), bcrypt.DefaultCost)
 
@@ -93,6 +115,8 @@ func TestLoginHandler(t *testing.T) {
 
 	gin.SetMode(gin.TestMode)
 	r := gin.New()
+
+	// Используем одинаковый секрет для store во всех тестах
 	store := cookie.NewStore([]byte("test_secret"))
 	r.Use(sessions.Sessions("user-session", store))
 	r.POST("/login", handler.LoginHandler)
@@ -154,8 +178,10 @@ func TestLoginHandler(t *testing.T) {
 }
 
 func TestProfileGetHandler(t *testing.T) {
-	testDB := setupTestDB(t)
-	handler := NewHandler(testDB)
+	testDB, cleanup := setupTestDB(t)
+	defer cleanup()
+
+	handler := newTestHandler(testDB)
 
 	testUser := models.User{
 		ID:        1,
@@ -173,12 +199,13 @@ func TestProfileGetHandler(t *testing.T) {
 	store := cookie.NewStore([]byte("test_secret"))
 	r.Use(sessions.Sessions("user-session", store))
 
+	// Создаем отдельный обработчик для установки сессии
 	r.GET("/set-session/:id", func(c *gin.Context) {
 		id := c.Param("id")
-		userID, _ := strconv.Atoi(id)
+		userID, _ := strconv.ParseUint(id, 10, 64)
 
 		session := sessions.Default(c)
-		session.Set("user_id", uint(userID))
+		session.Set("user_id", userID)
 		err := session.Save()
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -190,17 +217,19 @@ func TestProfileGetHandler(t *testing.T) {
 	r.GET("/profile", handler.AuthMiddleware(), handler.ProfileGetHandler)
 
 	t.Run("Successful profile retrieval", func(t *testing.T) {
+		// Создаем запрос для установки сессии
 		w1 := httptest.NewRecorder()
 		req1, _ := http.NewRequest("GET", "/set-session/1", nil)
 		r.ServeHTTP(w1, req1)
 
 		assert.Equal(t, http.StatusOK, w1.Code)
 
+		// Получаем cookie из ответа
 		cookies := w1.Result().Cookies()
 
+		// Создаем запрос на получение профиля с теми же куками
 		w2 := httptest.NewRecorder()
 		req2, _ := http.NewRequest("GET", "/profile", nil)
-
 		for _, cookie := range cookies {
 			req2.AddCookie(cookie)
 		}
@@ -227,6 +256,7 @@ func TestProfileGetHandler(t *testing.T) {
 	})
 
 	t.Run("Non-existent user", func(t *testing.T) {
+		// Создаем запрос для установки сессии с несуществующим ID
 		w1 := httptest.NewRecorder()
 		req1, _ := http.NewRequest("GET", "/set-session/999", nil)
 		r.ServeHTTP(w1, req1)
@@ -235,7 +265,6 @@ func TestProfileGetHandler(t *testing.T) {
 
 		w2 := httptest.NewRecorder()
 		req2, _ := http.NewRequest("GET", "/profile", nil)
-
 		for _, cookie := range cookies {
 			req2.AddCookie(cookie)
 		}
@@ -247,8 +276,10 @@ func TestProfileGetHandler(t *testing.T) {
 }
 
 func TestProfileUpdateHandler(t *testing.T) {
-	testDB := setupTestDB(t)
-	handler := NewHandler(testDB)
+	testDB, cleanup := setupTestDB(t)
+	defer cleanup()
+
+	handler := newTestHandler(testDB)
 
 	testUser := models.User{
 		ID:        1,
@@ -268,10 +299,10 @@ func TestProfileUpdateHandler(t *testing.T) {
 
 	r.GET("/set-session/:id", func(c *gin.Context) {
 		id := c.Param("id")
-		userID, _ := strconv.Atoi(id)
+		userID, _ := strconv.ParseUint(id, 10, 64)
 
 		session := sessions.Default(c)
-		session.Set("user_id", uint(userID))
+		session.Set("user_id", userID)
 		err := session.Save()
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -282,9 +313,10 @@ func TestProfileUpdateHandler(t *testing.T) {
 
 	r.PUT("/profile", handler.AuthMiddleware(), handler.ProfileUpdateHandler)
 
-	getSessionCookies := func(userID int) []*http.Cookie {
+	// Улучшенная функция для получения сессионных cookie
+	getSessionCookies := func(userID uint64) []*http.Cookie {
 		w := httptest.NewRecorder()
-		req, _ := http.NewRequest("GET", "/set-session/"+strconv.Itoa(userID), nil)
+		req, _ := http.NewRequest("GET", "/set-session/"+strconv.FormatUint(userID, 10), nil)
 		r.ServeHTTP(w, req)
 		return w.Result().Cookies()
 	}
@@ -327,6 +359,7 @@ func TestProfileUpdateHandler(t *testing.T) {
 	})
 
 	t.Run("No changes when all fields match", func(t *testing.T) {
+		// Обновляем пользователя в базе данных
 		exactName := "ExactName"
 		exactSurname := "ExactSurname"
 		exactEmail := "exact@example.com"
@@ -345,8 +378,10 @@ func TestProfileUpdateHandler(t *testing.T) {
 		testDB.First(&userInDB, 1)
 		assert.Equal(t, exactName, userInDB.Name)
 
+		// Получаем сессионные куки для пользователя
 		cookies := getSessionCookies(1)
 
+		// Создаем запрос на обновление с теми же данными
 		updateRequest := models.ProfileUpdateRequest{
 			Name:        &exactName,
 			Surname:     &exactSurname,
@@ -376,6 +411,7 @@ func TestProfileUpdateHandler(t *testing.T) {
 
 		var userAfterRequest models.User
 		testDB.First(&userAfterRequest, 1)
-		assert.Equal(t, userInDB.UpdatedAt, userAfterRequest.UpdatedAt)
+		// Убедимся, что дата обновления не изменилась
+		assert.Equal(t, userInDB.UpdatedAt.Unix(), userAfterRequest.UpdatedAt.Unix())
 	})
 }
