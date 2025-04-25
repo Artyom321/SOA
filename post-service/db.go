@@ -35,8 +35,7 @@ func connectToDB(connStr string) *gorm.DB {
 }
 
 func initDB() {
-	// Auto-migrate the Post model
-	err := db.AutoMigrate(&models.Post{})
+	err := db.AutoMigrate(&models.Post{}, &models.Comment{}, &models.Like{})
 	if err != nil {
 		log.Fatalf("Database migration error: %v", err)
 	}

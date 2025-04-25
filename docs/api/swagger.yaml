@@ -1,5 +1,64 @@
 basePath: /api
 definitions:
+  models.AddCommentRequest:
+    properties:
+      content:
+        description: |-
+          Текст комментария
+          required: true
+          example: Отличный пост, спасибо за информацию!
+        type: string
+    required:
+    - content
+    type: object
+  models.Comment:
+    properties:
+      content:
+        description: |-
+          Текст комментария
+          example: Это очень интересный пост!
+        type: string
+      created_at:
+        description: |-
+          Дата создания комментария
+          example: 2023-01-15T14:30:45Z
+        type: string
+      id:
+        description: |-
+          ID комментария
+          example: 456
+        type: integer
+      post_id:
+        description: |-
+          ID поста, к которому относится комментарий
+          example: 123
+        type: integer
+      user_id:
+        description: |-
+          ID пользователя, оставившего комментарий
+          example: 42
+        type: integer
+    type: object
+  models.CommentListResponse:
+    properties:
+      comments:
+        description: Список комментариев
+        items:
+          $ref: '#/definitions/models.Comment'
+        type: array
+      total_count:
+        description: |-
+          Общее количество комментариев
+          example: 25
+        type: integer
+    type: object
+  models.CommentResponse:
+    properties:
+      comment:
+        allOf:
+        - $ref: '#/definitions/models.Comment'
+        description: Данные комментария
+    type: object
   models.CreatePostRequest:
     properties:
       description:
@@ -43,6 +102,19 @@ definitions:
           Сообщение об ошибке
           example: Invalid credentials
         type: string
+    type: object
+  models.LikePostResponse:
+    properties:
+      success:
+        description: |-
+          Успешность операции лайка
+          example: true
+        type: boolean
+      total_likes:
+        description: |-
+          Общее количество лайков у поста
+          example: 42
+        type: integer
     type: object
   models.LoginRequest:
     properties:
@@ -93,8 +165,8 @@ definitions:
       creator_id:
         description: |-
           ID создателя поста
-          example: 123e4567-e89b-12d3-a456-426614174000
-        type: string
+          example: 42
+        type: integer
       description:
         description: |-
           Описание поста
@@ -103,8 +175,8 @@ definitions:
       id:
         description: |-
           ID поста
-          example: 123e4567-e89b-12d3-a456-426614174000
-        type: string
+          example: 123
+        type: integer
       is_private:
         description: |-
           Флаг приватности
@@ -219,6 +291,14 @@ definitions:
           example: user created
         type: string
     type: object
+  models.SuccessResponse:
+    properties:
+      success:
+        description: |-
+          Успешность выполнения операции
+          example: true
+        type: boolean
+    type: object
   models.UpdatePostRequest:
     properties:
       description:
@@ -261,6 +341,11 @@ definitions:
           Email пользователя
           example: john.doe@example.com
         type: string
+      id:
+        description: |-
+          ID пользователя
+          example: 1
+        type: integer
       login:
         description: |-
           Логин пользователя
@@ -512,6 +597,172 @@ paths:
       security:
       - sessionAuth: []
       summary: Обновление поста
+      tags:
+      - Posts
+  /posts/{id}/comments:
+    get:
+      description: Возвращает список комментариев к посту с пагинацией
+      parameters:
+      - description: ID поста
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Номер страницы (по умолчанию 1)
+        in: query
+        name: page
+        type: integer
+      - description: Размер страницы (по умолчанию 20)
+        in: query
+        name: page_size
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.CommentListResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - sessionAuth: []
+      summary: Получение комментариев к посту
+      tags:
+      - Comments
+    post:
+      consumes:
+      - application/json
+      description: Добавляет новый комментарий к посту от имени текущего пользователя
+        и отправляет событие в Kafka
+      parameters:
+      - description: ID поста
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Данные комментария
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/models.AddCommentRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.CommentResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - sessionAuth: []
+      summary: Добавление комментария к посту
+      tags:
+      - Comments
+  /posts/{id}/like:
+    post:
+      description: Ставит или убирает лайк поста текущим пользователем и отправляет
+        событие в Kafka
+      parameters:
+      - description: ID поста
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.LikePostResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - sessionAuth: []
+      summary: Лайк поста
+      tags:
+      - Posts
+  /posts/{id}/view:
+    post:
+      description: Регистрирует просмотр поста текущим пользователем и отправляет
+        событие в Kafka
+      parameters:
+      - description: ID поста
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - sessionAuth: []
+      summary: Просмотр поста
       tags:
       - Posts
   /profile:

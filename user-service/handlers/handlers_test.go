@@ -178,7 +178,7 @@ func TestProfileGetHandler(t *testing.T) {
 		userID, _ := strconv.Atoi(id)
 
 		session := sessions.Default(c)
-		session.Set("user_id", uint(userID))
+		session.Set("user_id", uint64(userID))
 		err := session.Save()
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -271,7 +271,7 @@ func TestProfileUpdateHandler(t *testing.T) {
 		userID, _ := strconv.Atoi(id)
 
 		session := sessions.Default(c)
-		session.Set("user_id", uint(userID))
+		session.Set("user_id", uint64(userID))
 		err := session.Save()
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
