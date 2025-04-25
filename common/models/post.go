@@ -7,16 +7,13 @@ import (
 	"time"
 )
 
-// StringArray is a custom type that implements the necessary interfaces for PostgreSQL arrays
 type StringArray []string
 
-// Value implements driver.Valuer interface
 func (a StringArray) Value() (driver.Value, error) {
 	if a == nil {
 		return nil, nil
 	}
 
-	// Convert []string to PostgreSQL array format
 	var quotedStrings []string
 	for _, s := range a {
 		quotedStrings = append(quotedStrings, fmt.Sprintf("%q", s))
@@ -25,31 +22,25 @@ func (a StringArray) Value() (driver.Value, error) {
 	return fmt.Sprintf("{%s}", strings.Join(quotedStrings, ",")), nil
 }
 
-// Scan implements sql.Scanner interface
-func (a *StringArray) Scan(value interface{}) error {
+func (a *StringArray) Scan(value any) error {
 	if value == nil {
 		*a = nil
 		return nil
 	}
 
-	// Handle string representation from PostgreSQL
 	strValue, ok := value.(string)
 	if !ok {
 		return fmt.Errorf("failed to scan array value: %v", value)
 	}
 
-	// Remove the curly braces and split
 	strValue = strings.Trim(strValue, "{}")
 	if strValue == "" {
 		*a = []string{}
 		return nil
 	}
 
-	// PostgreSQL returns quoted values; we need to parse them
-	// This is a simplified version; a full implementation would handle escapes better
 	result := []string{}
 	for _, item := range strings.Split(strValue, ",") {
-		// Remove the quotes around each item
 		item = strings.Trim(item, "\"")
 		result = append(result, item)
 	}
@@ -58,17 +49,11 @@ func (a *StringArray) Scan(value interface{}) error {
 	return nil
 }
 
-// RegisterArrayType doesn't need to do anything since the type is already defined
-func RegisterArrayType() {
-	// This is a no-op function since the StringArray type is already defined in this package
-	// We keep it to maintain the API
-}
-
 // swagger:model Post
 type Post struct {
 	// ID поста
 	// example: 123
-	ID uint `json:"id" gorm:"primaryKey;autoIncrement"`
+	ID uint64 `json:"id" gorm:"primaryKey;autoIncrement"`
 
 	// Название поста
 	// example: Мой первый пост
@@ -80,7 +65,7 @@ type Post struct {
 
 	// ID создателя поста
 	// example: 42
-	CreatorID uint `json:"creator_id"`
+	CreatorID uint64 `json:"creator_id"`
 
 	// Дата создания поста
 	// example: 2023-01-01T12:00:00Z
@@ -142,7 +127,7 @@ type UpdatePostRequest struct {
 type PostResponse struct {
 	// ID поста
 	// example: 123
-	ID uint `json:"id"`
+	ID uint64 `json:"id"`
 
 	// Название поста
 	// example: Мой первый пост
@@ -154,7 +139,7 @@ type PostResponse struct {
 
 	// ID создателя поста
 	// example: 42
-	CreatorID uint `json:"creator_id"`
+	CreatorID uint64 `json:"creator_id"`
 
 	// Дата создания поста
 	// example: 2023-01-01T12:00:00Z
@@ -180,7 +165,7 @@ type PostListResponse struct {
 
 	// Общее количество постов
 	// example: 42
-	TotalCount int `json:"total_count"`
+	TotalCount uint64 `json:"total_count"`
 }
 
 // swagger:model DeletePostResponse

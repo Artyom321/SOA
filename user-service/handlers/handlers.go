@@ -1,8 +1,12 @@
 package handlers
 
 import (
+	"log"
 	"net/http"
+	"social-network/common/config"
+	"social-network/common/kafka"
 	"social-network/common/models"
+	"strconv"
 	"time"
 
 	"github.com/gin-contrib/sessions"
@@ -12,11 +16,24 @@ import (
 )
 
 type Handler struct {
-	DB *gorm.DB
+	DB            *gorm.DB
+	KafkaProducer *kafka.Producer
+	Config        *config.Config
 }
 
 func NewHandler(db *gorm.DB) *Handler {
-	return &Handler{DB: db}
+	cfg := config.LoadConfig("common/config/config.json")
+
+	var kafkaProducer *kafka.Producer
+	if len(cfg.Kafka.Brokers) > 0 {
+		kafkaProducer = kafka.NewProducer(cfg.Kafka.Brokers)
+	}
+
+	return &Handler{
+		DB:            db,
+		KafkaProducer: kafkaProducer,
+		Config:        &cfg,
+	}
 }
 
 // @Summary Регистрация нового пользователя
@@ -59,6 +76,23 @@ func (h *Handler) RegisterHandler(c *gin.Context) {
 	if err := h.DB.Create(&user).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, models.ErrorResponse{Error: "User creation failed"})
 		return
+	}
+
+	if h.KafkaProducer != nil && len(h.Config.Kafka.UserTopic) > 0 {
+		event := models.UserRegistrationEvent{
+			UserID:    user.ID,
+			Login:     user.Login,
+			Email:     user.Email,
+			CreatedAt: user.CreatedAt,
+		}
+
+		key := strconv.FormatUint(uint64(user.ID), 10)
+		err := h.KafkaProducer.SendMessage(h.Config.Kafka.UserTopic, key, event)
+		if err != nil {
+			log.Printf("Error sending user registration event to Kafka: %v", err)
+		} else {
+			log.Printf("User registration event sent to Kafka: %s", key)
+		}
 	}
 
 	c.JSON(http.StatusCreated, models.RegisterResponse{
@@ -115,7 +149,7 @@ func (h *Handler) LoginHandler(c *gin.Context) {
 // @Failure 401 {object} models.ErrorResponse
 // @Router /profile [get]
 func (h *Handler) ProfileGetHandler(c *gin.Context) {
-	userID := c.MustGet("user_id").(uint)
+	userID := c.MustGet("user_id").(uint64)
 
 	var user models.User
 	if err := h.DB.First(&user, userID).Error; err != nil {
@@ -141,7 +175,7 @@ func (h *Handler) ProfileGetHandler(c *gin.Context) {
 // @Failure 500 {object} models.ErrorResponse
 // @Router /profile [put]
 func (h *Handler) ProfileUpdateHandler(c *gin.Context) {
-	userID := c.MustGet("user_id").(uint)
+	userID := c.MustGet("user_id").(uint64)
 
 	var user models.User
 	if err := h.DB.First(&user, userID).Error; err != nil {
