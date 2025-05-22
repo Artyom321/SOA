@@ -358,6 +358,260 @@ const docTemplate = `{
                 }
             }
         },
+        "/posts/{id}/comments": {
+            "get": {
+                "security": [
+                    {
+                        "sessionAuth": []
+                    }
+                ],
+                "description": "Возвращает список комментариев к посту с пагинацией",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Comments"
+                ],
+                "summary": "Получение комментариев к посту",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID поста",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Номер страницы (по умолчанию 1)",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Размер страницы (по умолчанию 20)",
+                        "name": "page_size",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.CommentListResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "sessionAuth": []
+                    }
+                ],
+                "description": "Добавляет новый комментарий к посту от имени текущего пользователя и отправляет событие в Kafka",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Comments"
+                ],
+                "summary": "Добавление комментария к посту",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID поста",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Данные комментария",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.AddCommentRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/models.CommentResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/posts/{id}/like": {
+            "post": {
+                "security": [
+                    {
+                        "sessionAuth": []
+                    }
+                ],
+                "description": "Ставит или убирает лайк поста текущим пользователем и отправляет событие в Kafka",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Posts"
+                ],
+                "summary": "Лайк поста",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID поста",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.LikePostResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/posts/{id}/view": {
+            "post": {
+                "security": [
+                    {
+                        "sessionAuth": []
+                    }
+                ],
+                "description": "Регистрирует просмотр поста текущим пользователем и отправляет событие в Kafka",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Posts"
+                ],
+                "summary": "Просмотр поста",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID поста",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/profile": {
             "get": {
                 "security": [
@@ -492,6 +746,72 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "models.AddCommentRequest": {
+            "type": "object",
+            "required": [
+                "content"
+            ],
+            "properties": {
+                "content": {
+                    "description": "Текст комментария\nrequired: true\nexample: Отличный пост, спасибо за информацию!",
+                    "type": "string"
+                }
+            }
+        },
+        "models.Comment": {
+            "type": "object",
+            "properties": {
+                "content": {
+                    "description": "Текст комментария\nexample: Это очень интересный пост!",
+                    "type": "string"
+                },
+                "created_at": {
+                    "description": "Дата создания комментария\nexample: 2023-01-15T14:30:45Z",
+                    "type": "string"
+                },
+                "id": {
+                    "description": "ID комментария\nexample: 456",
+                    "type": "integer"
+                },
+                "post_id": {
+                    "description": "ID поста, к которому относится комментарий\nexample: 123",
+                    "type": "integer"
+                },
+                "user_id": {
+                    "description": "ID пользователя, оставившего комментарий\nexample: 42",
+                    "type": "integer"
+                }
+            }
+        },
+        "models.CommentListResponse": {
+            "type": "object",
+            "properties": {
+                "comments": {
+                    "description": "Список комментариев",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.Comment"
+                    }
+                },
+                "total_count": {
+                    "description": "Общее количество комментариев\nexample: 25",
+                    "type": "integer"
+                }
+            }
+        },
+        "models.CommentResponse": {
+            "type": "object",
+            "properties": {
+                "comment": {
+                    "description": "Данные комментария",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/models.Comment"
+                        }
+                    ]
+                }
+            }
+        },
         "models.CreatePostRequest": {
             "type": "object",
             "required": [
@@ -534,6 +854,19 @@ const docTemplate = `{
                 "error": {
                     "description": "Сообщение об ошибке\nexample: Invalid credentials",
                     "type": "string"
+                }
+            }
+        },
+        "models.LikePostResponse": {
+            "type": "object",
+            "properties": {
+                "success": {
+                    "description": "Успешность операции лайка\nexample: true",
+                    "type": "boolean"
+                },
+                "total_likes": {
+                    "description": "Общее количество лайков у поста\nexample: 42",
+                    "type": "integer"
                 }
             }
         },
@@ -587,16 +920,16 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "creator_id": {
-                    "description": "ID создателя поста\nexample: 123e4567-e89b-12d3-a456-426614174000",
-                    "type": "string"
+                    "description": "ID создателя поста\nexample: 42",
+                    "type": "integer"
                 },
                 "description": {
                     "description": "Описание поста\nexample: Это описание моего первого поста",
                     "type": "string"
                 },
                 "id": {
-                    "description": "ID поста\nexample: 123e4567-e89b-12d3-a456-426614174000",
-                    "type": "string"
+                    "description": "ID поста\nexample: 123",
+                    "type": "integer"
                 },
                 "is_private": {
                     "description": "Флаг приватности\nexample: false",
@@ -713,6 +1046,15 @@ const docTemplate = `{
                 }
             }
         },
+        "models.SuccessResponse": {
+            "type": "object",
+            "properties": {
+                "success": {
+                    "description": "Успешность выполнения операции\nexample: true",
+                    "type": "boolean"
+                }
+            }
+        },
         "models.UpdatePostRequest": {
             "type": "object",
             "properties": {
@@ -751,6 +1093,10 @@ const docTemplate = `{
                 "email": {
                     "description": "Email пользователя\nexample: john.doe@example.com",
                     "type": "string"
+                },
+                "id": {
+                    "description": "ID пользователя\nexample: 1",
+                    "type": "integer"
                 },
                 "login": {
                     "description": "Логин пользователя\nexample: johndoe",

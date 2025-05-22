@@ -27,7 +27,7 @@ func main() {
 
 	grpcServer := grpc.NewServer()
 
-	postServer := handlers.NewPostServer(db)
+	postServer := handlers.NewPostServer(db, &serviceConfig)
 	postpb.RegisterPostServiceServer(grpcServer, *postServer)
 
 	reflection.Register(grpcServer)
