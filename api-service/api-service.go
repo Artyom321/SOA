@@ -25,7 +25,11 @@ import (
 func main() {
 	cfg := config.LoadConfig("common/config/config.json")
 
-	handler := handlers.NewHandler("user-service", cfg.UserService.Port, "post-service", cfg.PostService.Port)
+	handler := handlers.NewHandler(
+		"user-service", cfg.UserService.Port,
+		"post-service", cfg.PostService.Port,
+		"stats-service", cfg.StatsService.Port,
+	)
 
 	r := gin.Default()
 
@@ -42,7 +46,6 @@ func main() {
 			authenticated.GET("/profile", handler.ProfileGetHandler)
 			authenticated.PUT("/profile", handler.ProfileUpdateHandler)
 
-			// Post routes
 			posts := authenticated.Group("/posts")
 			{
 				posts.POST("", handler.CreatePostHandler)
@@ -54,6 +57,16 @@ func main() {
 				posts.POST("/:id/like", handler.LikePostHandler)
 				posts.POST("/:id/comments", handler.AddCommentHandler)
 				posts.GET("/:id/comments", handler.GetCommentsHandler)
+			}
+
+			stats := authenticated.Group("/stats")
+			{
+				stats.GET("/posts/:id", handler.GetPostStatsHandler)
+				stats.GET("/posts/:id/views/timeline", handler.GetPostViewsTimelineHandler)
+				stats.GET("/posts/:id/likes/timeline", handler.GetPostLikesTimelineHandler)
+				stats.GET("/posts/:id/comments/timeline", handler.GetPostCommentsTimelineHandler)
+				stats.GET("/posts/top", handler.GetTopPostsHandler)
+				stats.GET("/users/top", handler.GetTopUsersHandler)
 			}
 		}
 	}
