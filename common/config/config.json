@@ -14,6 +14,9 @@
             "port": 5432
         }
     },
+    "statsService": {
+        "port": 8083
+    },
     "kafka": {
         "broker": "kafka:29092",
         "userTopic": "user_registrations",

@@ -25,6 +25,9 @@ type Config struct {
 		LikeTopic    string `json:"likeTopic"`
 		CommentTopic string `json:"commentTopic"`
 	} `json:"kafka"`
+	StatsService struct {
+        Port int `json:"port"`
+    } `json:"statsService"`
 }
 
 type DBConfig struct {

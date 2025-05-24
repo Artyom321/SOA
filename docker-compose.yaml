@@ -10,6 +10,7 @@ services:
     depends_on:
       - post-service
       - user-service
+      - stats-service
 
   user-service:
     build:
@@ -57,6 +58,42 @@ services:
     depends_on:
       - post-db
       - kafka
+
+  stats-service:
+    build:
+      context: .
+      dockerfile: ./stats-service/Dockerfile
+    ports:
+      - "8083:8083"
+    environment:
+      - CLICKHOUSE_HOST=clickhouse
+      - CLICKHOUSE_PORT=9000
+      - CLICKHOUSE_USER=default
+      - CLICKHOUSE_PASSWORD=password
+      - CLICKHOUSE_DB=social_stats
+      - KAFKA_BROKERS=kafka:29092
+      - KAFKA_VIEW_TOPIC=post_views
+      - KAFKA_LIKE_TOPIC=post_likes
+      - KAFKA_COMMENT_TOPIC=post_comments
+    networks:
+      - app-network
+    depends_on:
+      - clickhouse
+      - kafka
+
+  clickhouse:
+    image: clickhouse/clickhouse-server:23.8
+    ports:
+      - "8123:8123"
+      - "9000:9000"
+    volumes:
+      - clickhouse_data:/var/lib/clickhouse
+    environment:
+      - CLICKHOUSE_USER=default
+      - CLICKHOUSE_PASSWORD=password
+      - CLICKHOUSE_DB=social_stats
+    networks:
+      - app-network
 
   user-db:
     image: postgres:14
@@ -136,3 +173,4 @@ volumes:
   user_postgres_data:
   post_postgres_data:
   kafka_data:
+  clickhouse_data:

@@ -1,0 +1,74 @@
+syntax = "proto3";
+
+package stats;
+
+option go_package = "social-network/common/proto/stats";
+
+import "google/protobuf/timestamp.proto";
+
+service StatsService {
+  rpc GetPostStats(PostStatsRequest) returns (PostStatsResponse);
+
+  rpc GetPostViewsTimeline(PostTimelineRequest) returns (TimelineResponse);
+
+  rpc GetPostLikesTimeline(PostTimelineRequest) returns (TimelineResponse);
+
+  rpc GetPostCommentsTimeline(PostTimelineRequest) returns (TimelineResponse);
+
+  rpc GetTopPosts(TopRequest) returns (TopPostsResponse);
+
+  rpc GetTopUsers(TopRequest) returns (TopUsersResponse);
+}
+
+message PostStatsRequest {
+  uint64 post_id = 1;
+}
+
+message PostStatsResponse {
+  uint64 post_id = 1;
+  uint64 views_count = 2;
+  uint64 likes_count = 3;
+  uint64 comments_count = 4;
+}
+
+message PostTimelineRequest {
+  uint64 post_id = 1;
+  uint32 days = 2;
+}
+
+message TimelineItem {
+  google.protobuf.Timestamp date = 1;
+  uint64 count = 2;
+}
+
+message TimelineResponse {
+  repeated TimelineItem items = 1;
+}
+
+enum MetricType {
+  VIEWS = 0;
+  LIKES = 1;
+  COMMENTS = 2;
+}
+
+message TopRequest {
+  MetricType metric_type = 1;
+}
+
+message TopPostItem {
+  uint64 post_id = 1;
+  uint64 count = 2;
+}
+
+message TopPostsResponse {
+  repeated TopPostItem posts = 1;
+}
+
+message TopUserItem {
+  uint64 user_id = 1;
+  uint64 count = 2;
+}
+
+message TopUsersResponse {
+  repeated TopUserItem users = 1;
+}
