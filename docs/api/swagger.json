@@ -740,6 +740,270 @@
                     }
                 }
             }
+        },
+        "/stats/posts/top": {
+            "get": {
+                "description": "Возвращает топ-10 постов по количеству просмотров, лайков или комментариев",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Statistics"
+                ],
+                "summary": "Получение топ-10 постов",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Тип метрики (views, likes, comments)",
+                        "name": "metric_type",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.TopPostsResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/stats/posts/{id}": {
+            "get": {
+                "description": "Возвращает количество просмотров, лайков и комментариев по посту",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Statistics"
+                ],
+                "summary": "Получение статистики по посту",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID поста",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.PostStatsResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/stats/posts/{id}/comments/timeline": {
+            "get": {
+                "description": "Возвращает массив с датой (день) и количеством комментариев за день",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Statistics"
+                ],
+                "summary": "Получение динамики комментариев по посту",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID поста",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Количество дней (по умолчанию 30)",
+                        "name": "days",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.TimelineResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/stats/posts/{id}/likes/timeline": {
+            "get": {
+                "description": "Возвращает массив с датой (день) и количеством лайков за день",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Statistics"
+                ],
+                "summary": "Получение динамики лайков по посту",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID поста",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Количество дней (по умолчанию 30)",
+                        "name": "days",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.TimelineResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/stats/posts/{id}/views/timeline": {
+            "get": {
+                "description": "Возвращает массив с датой (день) и количеством просмотров за день",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Statistics"
+                ],
+                "summary": "Получение динамики просмотров по посту",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID поста",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Количество дней (по умолчанию 30)",
+                        "name": "days",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.TimelineResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/stats/users/top": {
+            "get": {
+                "description": "Возвращает топ-10 пользователей по количеству просмотров, лайков или комментариев",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Statistics"
+                ],
+                "summary": "Получение топ-10 пользователей",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Тип метрики (views, likes, comments)",
+                        "name": "metric_type",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.TopUsersResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -949,6 +1213,27 @@
                 }
             }
         },
+        "models.PostStatsResponse": {
+            "type": "object",
+            "properties": {
+                "comments_count": {
+                    "description": "Количество комментариев\nexample: 45",
+                    "type": "integer"
+                },
+                "likes_count": {
+                    "description": "Количество лайков\nexample: 320",
+                    "type": "integer"
+                },
+                "post_id": {
+                    "description": "ID поста\nexample: 123",
+                    "type": "integer"
+                },
+                "views_count": {
+                    "description": "Количество просмотров\nexample: 1500",
+                    "type": "integer"
+                }
+            }
+        },
         "models.ProfileResponse": {
             "type": "object",
             "properties": {
@@ -1049,6 +1334,81 @@
                 "success": {
                     "description": "Успешность выполнения операции\nexample: true",
                     "type": "boolean"
+                }
+            }
+        },
+        "models.TimelineItem": {
+            "type": "object",
+            "properties": {
+                "count": {
+                    "description": "Количество событий\nexample: 42",
+                    "type": "integer"
+                },
+                "date": {
+                    "description": "Дата (день)\nexample: 2023-09-01T00:00:00Z",
+                    "type": "string"
+                }
+            }
+        },
+        "models.TimelineResponse": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "description": "Временная динамика по дням",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.TimelineItem"
+                    }
+                }
+            }
+        },
+        "models.TopPostItem": {
+            "type": "object",
+            "properties": {
+                "count": {
+                    "description": "Количество (просмотров/лайков/комментариев)\nexample: 1500",
+                    "type": "integer"
+                },
+                "post_id": {
+                    "description": "ID поста\nexample: 123",
+                    "type": "integer"
+                }
+            }
+        },
+        "models.TopPostsResponse": {
+            "type": "object",
+            "properties": {
+                "posts": {
+                    "description": "Список топ постов",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.TopPostItem"
+                    }
+                }
+            }
+        },
+        "models.TopUserItem": {
+            "type": "object",
+            "properties": {
+                "count": {
+                    "description": "Количество (просмотров/лайков/комментариев)\nexample: 1500",
+                    "type": "integer"
+                },
+                "user_id": {
+                    "description": "ID пользователя\nexample: 42",
+                    "type": "integer"
+                }
+            }
+        },
+        "models.TopUsersResponse": {
+            "type": "object",
+            "properties": {
+                "users": {
+                    "description": "Список топ пользователей",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.TopUserItem"
+                    }
                 }
             }
         },
